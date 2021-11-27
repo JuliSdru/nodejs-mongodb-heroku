@@ -267,35 +267,7 @@ router.get('/geoZonaSur', (req, res) => {
 
 
 // //CALCULAR CUANTOS CLIENTES EXISTE A X DISTANCIA
-router.get('/funciona', (req, res) => {
-    dbTickets = db.getInstance();
-    dbTickets.collection("ticketera")
-        .find(
-            {
-                "cliente.direccion.ubicacion":{ 
-                    $near:{ 
-                        $geometry:{
-                            "type": "Point",
-                            "coordinates": [                      
-                                -58.275389671325684,
-                                -34.72862079149499
-                            ],
-                        },
-                        distanceField: "dist.calculated",
-                        $maxDistance: 2000
-                    }
-                }
-            }
-        )
-        .toArray((err, result) => {
-            if (err) return console.log(err)
-            console.log(result)
-            res.send(result)
-        })
-})
-
-
-router.get('/centros-clientes', (req, res) => {
+router.get('/clientesTicketsDistancia', (req, res) => {
     dbTickets = db.getInstance();
     dbTickets.collection("ticketera").find().forEach((ticket) => 
     {
@@ -304,7 +276,7 @@ router.get('/centros-clientes', (req, res) => {
                 $geoNear: {
                     near: ticket.location.ubicacion,
                     distanceField: "dist.calculated",
-                    maxDistance: 2000
+                    maxDistance: 200000
                 }
             },
             {
