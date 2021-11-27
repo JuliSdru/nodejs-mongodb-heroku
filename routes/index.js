@@ -276,7 +276,7 @@ router.get('/clientesTicketsDistancia', (req, res) => {
                 $geoNear: {
                     near: ticket.location.ubicacion,
                     distanceField: "dist.calculated",
-                    maxDistance: 20000
+                    maxDistance: 200000
                 }
             },
             {
