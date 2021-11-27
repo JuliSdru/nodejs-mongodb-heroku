@@ -225,12 +225,12 @@ router.get('/cuantosExiste', (req, res) => {
     dbTickets.collection("ticketera")
         .find(
             {
-                "cliente.direccion.ubicacion.geometry":{ 
+                "cliente.direccion.ubicacion":{ 
                     $near:{ 
                         $geometry:{
                             "type": "Point",
                             "coordinates": [                      
-                                -58.3955,
+                                -58.3956,
                                 -34.753
                             ]
                         },
