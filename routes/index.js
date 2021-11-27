@@ -210,7 +210,7 @@ router.get('/distanciaCliente', (req, res) => {
     dbTickets.collection("ticketera")
         .find(
             {
-                "cliente.direccion.ubicacion.geometry":{ 
+                "cliente.location":{ 
                     $near:{ 
                         $geometry:{
                             "type": "Point",
@@ -230,7 +230,6 @@ router.get('/distanciaCliente', (req, res) => {
             res.send(result)
         })
 })
-
 
 
 
