@@ -204,34 +204,6 @@ router.get('/reclamoDerivado', (req, res) => {
 })
 
 
-//CALCULAR CUANTOS CLIENTES EXISTE A X DISTANCIA
-router.get('/distanciaCliente', (req, res) => {
-    dbTickets = db.getInstance();
-    dbTickets.collection("ticketera")
-        .find(
-            {
-                "cliente.location":{ 
-                    $near:{ 
-                        $geometry:{
-                            "type": "Point",
-                            "coordinates": [                      
-                                -58.275389671325684,
-                                -34.72862079149499
-                            ]
-                        },
-                        $maxDistance: 200000
-                    }
-                }
-            }
-        )
-        .toArray((err, result) => {
-            if (err) return console.log(err)
-            console.log(result)
-            res.send(result)
-        })
-})
-
-
 
 //CANTIDAD DE CLIENTES POR ZONA
 router.get('/mismaZona', (req, res) => {
@@ -292,6 +264,63 @@ router.get('/geoZonaSur', (req, res) => {
         })
 })
 
+
+
+// //CALCULAR CUANTOS CLIENTES EXISTE A X DISTANCIA
+router.get('/funciona', (req, res) => {
+    dbTickets = db.getInstance();
+    dbTickets.collection("ticketera")
+        .find(
+            {
+                "cliente.direccion.ubicacion":{ 
+                    $near:{ 
+                        $geometry:{
+                            "type": "Point",
+                            "coordinates": [                      
+                                -58.275389671325684,
+                                -34.72862079149499
+                            ],
+                        },
+                        distanceField: "dist.calculated",
+                        $maxDistance: 2000
+                    }
+                }
+            }
+        )
+        .toArray((err, result) => {
+            if (err) return console.log(err)
+            console.log(result)
+            res.send(result)
+        })
+})
+
+
+router.get('/centros-clientes', (req, res) => {
+    dbTickets = db.getInstance();
+    dbTickets.collection("ticketera").find().forEach((ticket) => 
+    {
+        dbTickets.collection("sucursal").aggregate([
+            {
+                $geoNear: {
+                    near: ticket.location.ubicacion,
+                    distanceField: "dist.calculated",
+                    maxDistance: 2000
+                }
+            },
+            {
+                $group: {
+                    _id:ticket.cliente.nombre,
+                    cantidadCentros: { $sum: 1 }
+                }
+            }
+    
+    ]).toArray((err, result) => {
+        if (err) return console.log(err)
+        res.send(result)
+    })
+
+})
+})
 
 
 module.exports = router;
