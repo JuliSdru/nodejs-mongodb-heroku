@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
 })
 
 //TRAE UN CLIENTE
-router.get('/cliente', (req, res) => {
+router.get('/clienteUno', (req, res) => {
     dbTickets = db.getInstance();
     dbTickets.collection("ticketera")
         .find({ "cliente.id": 90 })
@@ -59,7 +59,7 @@ router.get('/desperfectosUbicacion', (req, res) => {
 })
 
 //QUIEN ATIENDE LOS TICKET
-router.get('/atencion-empleado', (req, res) => {
+router.get('/atencionAempleados', (req, res) => {
     dbTickets = db.getInstance();
     dbTickets.collection("ticketera")
         .aggregate([
@@ -82,8 +82,8 @@ router.get('/atencion-empleado', (req, res) => {
 })
 
 
-//CONSULTA DE CLIENTES
-router.get('/clientes-consultas', (req, res) => {
+//CLIENTES CON RECLAMOS
+router.get('/reclamosClientes', (req, res) => {
     dbTickets = db.getInstance();
     dbTickets.collection("ticketera")
         .aggregate([
@@ -111,8 +111,8 @@ router.get('/clientes-consultas', (req, res) => {
 })
 
 
-//EMPLEADOS CON RECLAMO FINALIZADO
-router.get('/empleado-cliente', (req, res) => {
+//EMPLEADOS CLIENTES
+router.get('/empleadoCliente', (req, res) => {
     dbTickets = db.getInstance();
     dbTickets.collection("ticketera")
         .aggregate([
@@ -143,7 +143,7 @@ router.get('/empleado-cliente', (req, res) => {
 
 
 //EMPLEADOS CON RECLAMO FINALIZADO
-router.get('/clientes-tickets', (req, res) => {
+router.get('/reclamoFinalizado', (req, res) => {
     dbTickets = db.getInstance();
     dbTickets.collection("ticketera")
         .aggregate([
@@ -175,7 +175,7 @@ router.get('/clientes-tickets', (req, res) => {
 
 
 //EMPLEADOS CON RECLAMO DERIVADO
-router.get('/clientes-derivados', (req, res) => {
+router.get('/reclamoDerivado', (req, res) => {
     dbTickets = db.getInstance();
     dbTickets.collection("ticketera")
         .aggregate([
@@ -203,38 +203,23 @@ router.get('/clientes-derivados', (req, res) => {
         })
 })
 
-router.get('/atencion-horario', (req, res) => {
-    dbTickets = db.getInstance();
-    dbTickets.collection("ticketera")
-        .aggregate([
-            { $unwind: "$estado" },
-            { $unwind: "$estado.fecha" },
-            { $project: { hour: { $hour: "$estado.fecha" } } },
-            { $group: { _id: "$hour", atenciones: { $sum: 1 } } },
-            { $sort: { atenciones: -1 } },
-            { $limit: 1 }
-        ]).toArray((err, result) => {
-            if (err) return console.log(err)
-            console.log(result)
-            res.send(result)
-        })
-})
 
-router.get('/cuantosExiste', (req, res) => {
+//CALCULAR CUANTOS CLIENTES EXISTE A X DISTANCIA
+router.get('/distanciaCliente', (req, res) => {
     dbTickets = db.getInstance();
     dbTickets.collection("ticketera")
         .find(
             {
-                "cliente.direccion.ubicacion":{ 
+                "cliente.direccion.ubicacion.geometry":{ 
                     $near:{ 
                         $geometry:{
                             "type": "Point",
                             "coordinates": [                      
-                                -58.3956,
-                                -34.753
+                                -58.275389671325684,
+                                -34.72862079149499
                             ]
                         },
-                        $maxDistance: 100000
+                        $maxDistance: 200000
                     }
                 }
             }
@@ -249,10 +234,35 @@ router.get('/cuantosExiste', (req, res) => {
 
 
 
+//CANTIDAD DE CLIENTES POR ZONA
+router.get('/mismaZona', (req, res) => {
+    dbTickets = db.getInstance();
+    dbTickets.collection("ticketera")
+        .aggregate([
+            {
+                $group: {
+                    _id: "$cliente.direccion.localidad.descripcion",
+                    cantidadDeClientes: { $sum: 1 },
+                    cliente: {
+                        $push: {
+                            numeroCliente: "$cliente.id",
+                            nombre: "$cliente.nombre"
+                        }
+                    }
+                },
+            },
+            { $sort: { "cantidadDeClientes": -1 } },
+            { $limit: 1 }
+        ]).toArray((err, result) => {
+            if (err) return console.log(err)
+            console.log(result)
+            res.send(result)
+        })
+})
 
 
-//Cambiar coordenadas
-//obtener por ubicacion de zona sur
+
+//OBTENER UBICACION POR ZONA SUR
 router.get('/geoZonaSur', (req, res) => {
     dbTickets = db.getInstance();
     dbTickets.collection("ticketera")
@@ -264,11 +274,11 @@ router.get('/geoZonaSur', (req, res) => {
                             "coordinates": 
                             [
                                 [
-                                    [-58.395423889160156,-34.71650011651563],
-                                    [-58.333625793457024,-34.71650011651563],
-                                    [-58.333625793457024,-34.65326216318602],
-                                    [-58.395423889160156,-34.65326216318602],
-                                    [-58.395423889160156,-34.71650011651563]
+                                    [-58.48417282104492,-34.855368945050444],
+                                    [ -58.32916259765626, -34.855368945050444],
+                                    [-58.32916259765626,-34.7476778289446],
+                                    [-58.48417282104492, -34.7476778289446],
+                                    [-58.48417282104492,-34.855368945050444]
                                 ]
                             ]
                         }
